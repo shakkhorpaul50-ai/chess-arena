@@ -1,0 +1,78 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@(ViewData["Title"] is not null ? $"{ViewData["Title"]} - " : "")Chess Arena</title>
+    <script src="~/lib/tailwind/tailwind.js"></script>
+    <link rel="stylesheet" href="~/lib/chessboardjs/css/chessboard-1.0.0.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body class="bg-slate-950 text-slate-200 min-h-screen flex flex-col">
+
+    <nav class="bg-slate-900/80 border-b border-slate-800 backdrop-blur sticky top-0 z-40">
+        <div class="max-w-7xl mx-auto px-4">
+            <div class="flex items-center justify-between h-16">
+                <a href="/" class="flex items-center gap-2 text-xl font-bold tracking-tight">
+                    <span class="text-emerald-400">&#9818;</span>
+                    <span class="text-white">Chess<span class="text-emerald-400">Arena</span></span>
+                </a>
+                <div class="hidden md:flex items-center gap-6 text-sm font-medium">
+                    <a asp-controller="Home" asp-action="Index" class="hover:text-emerald-400 transition">Home</a>
+                    <a asp-controller="Game" asp-action="Lobby" class="hover:text-emerald-400 transition">Play Online</a>
+                    <a asp-controller="Bot" asp-action="Index" class="hover:text-emerald-400 transition">Play vs Bot</a>
+                    <a asp-controller="Tournament" asp-action="Index" class="hover:text-emerald-400 transition">Tournaments</a>
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <a asp-controller="Friends" asp-action="Index" class="hover:text-emerald-400 transition">Friends</a>
+                        <a asp-controller="Profile" asp-action="Index" class="hover:text-emerald-400 transition">Profile</a>
+                        @if (User.IsInRole("Admin"))
+                        {
+                            <a asp-controller="Admin" asp-action="Index" class="text-amber-400 hover:text-amber-300 transition">Admin</a>
+                        }
+                    }
+                </div>
+                <div class="flex items-center gap-3">
+                    @if (SignInManager.IsSignedIn(User))
+                    {
+                        <span class="hidden sm:inline text-xs text-slate-400">
+                            Hi, <span class="text-slate-200 font-medium">@User.Identity!.Name</span>
+                        </span>
+                        <form asp-controller="Account" asp-action="Logout" method="post" class="inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="text-sm px-3 py-1.5 rounded-lg border border-slate-700 hover:border-red-500 hover:text-red-400 transition">
+                                Sign out
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <a asp-controller="Account" asp-action="Login" class="text-sm px-3 py-1.5 rounded-lg border border-slate-700 hover:border-emerald-500 hover:text-emerald-400 transition">Sign in</a>
+                        <a asp-controller="Account" asp-action="Register" class="text-sm px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold transition">Join free</a>
+                    }
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-1 w-full">
+        @RenderBody()
+    </main>
+
+    <footer class="border-t border-slate-800 bg-slate-900/60">
+        <div class="max-w-7xl mx-auto px-4 py-6 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
+            <span>&copy; @DateTime.UtcNow.Year ChessArena &mdash; Play chess, join tournaments, watch friends.</span>
+            <span>Powered by Stockfish (GPL-3.0) &middot; ASP.NET Core &middot; SignalR</span>
+        </div>
+    </footer>
+
+    <div id="toast-root" class="fixed bottom-4 right-4 z-50 flex flex-col gap-2"></div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/signalr/signalr.min.js"></script>
+    <script src="~/lib/chessjs/chess.min.js"></script>
+    <script src="~/lib/chessboardjs/js/chessboard-1.0.0.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

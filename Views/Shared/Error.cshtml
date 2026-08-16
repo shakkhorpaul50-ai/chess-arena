@@ -1,0 +1,31 @@
+﻿@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error";
+}
+
+<div class="max-w-lg mx-auto px-4 py-24 text-center">
+    <p class="text-7xl font-extrabold text-slate-800 mb-4">!</p>
+    <h1 class="text-2xl font-bold text-white mb-2">Something went wrong</h1>
+    <p class="text-slate-400 mb-8">An error occurred while processing your request. Please try again.</p>
+
+    @if (Model.ShowRequestId)
+    {
+        <p class="text-xs text-slate-500 mb-8">
+            Request ID: <code class="text-slate-300">@Model.RequestId</code>
+        </p>
+    }
+
+    <div class="bg-slate-900/60 border border-slate-800 rounded-xl p-5 text-left text-sm text-slate-400">
+        <p class="mb-3">
+            When running in the <strong class="text-slate-200">Development</strong> environment you will see detailed
+            exception information instead of this page.
+        </p>
+        <p>
+            Never enable the Development environment on a deployed app &mdash; it can expose sensitive
+            information. Use the <code class="text-slate-300">ASPNETCORE_ENVIRONMENT</code> environment variable
+            to switch environments.
+        </p>
+    </div>
+
+    <a href="/" class="inline-block mt-8 px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold transition">Back to home</a>
+</div>

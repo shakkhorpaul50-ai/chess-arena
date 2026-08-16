@@ -1,0 +1,96 @@
+@model TournamentDetailViewModel
+@{
+    var t = Model.Tournament;
+}
+
+@if (t.Status == TournamentStatus.Running && t.Rounds.Count == 0)
+{
+    <p class="text-sm text-amber-400">Waiting for the first round to be generated...</p>
+}
+
+<div class="grid gap-6 lg:grid-cols-3">
+
+    <section class="lg:col-span-2 space-y-6">
+        @foreach (var round in t.Rounds.OrderBy(r => r.Number))
+        {
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-4">
+                    <h2 class="font-semibold text-white">Round @round.Number</h2>
+                    <span class="text-xs px-2.5 py-1 rounded-md @(round.Status == TournamentRoundStatus.Completed ? "bg-emerald-500/15 text-emerald-400" : "bg-sky-500/15 text-sky-400")">
+                        @round.Status
+                    </span>
+                </div>
+                <div class="space-y-2">
+                    @foreach (var m in round.Matches)
+                    {
+                        var isMyMatch = Model.CurrentUserId is not null &&
+                            (m.WhitePlayerId == Model.CurrentUserId || m.BlackPlayerId == Model.CurrentUserId);
+                        var href = m.Game is null ? null : (m.Game.Status == GameStatus.Waiting ? $"/Game/Play?key={m.Game.GameKey}" : $"/Game/Watch?key={m.Game.GameKey}");
+                        var content = $"{m.WhitePlayer?.DisplayName ?? "?"} vs {m.BlackPlayer?.DisplayName ?? "?"}";
+                        var badge = m.Result switch
+                        {
+                            GameResult.WhiteWin => $"{m.WhitePlayer?.DisplayName} won",
+                            GameResult.BlackWin => $"{m.BlackPlayer?.DisplayName} won",
+                            GameResult.Draw => "Draw",
+                            _ => m.Game?.Status == GameStatus.Waiting ? "Not started" : "In progress"
+                        };
+                        var badgeClass = m.Result switch
+                        {
+                            GameResult.Undecided when m.Game?.Status == GameStatus.Active => "bg-emerald-500/15 text-emerald-400",
+                            GameResult.Undecided => "bg-amber-500/15 text-amber-400",
+                            _ => "bg-slate-700/50 text-slate-400"
+                        };
+                        <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-800">
+                            <div class="min-w-0">
+                                <p class="font-medium text-sm text-slate-100 truncate">
+                                    @content
+                                    @if (isMyMatch)
+                                    {
+                                        <span class="ml-2 text-xs px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300">you</span>
+                                    }
+                                </p>
+                                <p class="text-xs text-slate-500 mt-0.5">@(m.Game?.TimeControlLabel ?? t.TimeControlLabel)</p>
+                            </div>
+                            <div class="flex items-center gap-2 shrink-0">
+                                <span class="text-xs px-2.5 py-1 rounded-md @badgeClass">@badge</span>
+                                @if (href is not null && m.Game?.Status != GameStatus.Ended && m.Game?.Status != GameStatus.Aborted)
+                                {
+                                    <a href="@href" class="text-xs px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-emerald-600 text-slate-100 font-medium transition">
+                                        @(m.Game?.Status == GameStatus.Waiting ? (isMyMatch ? "Play" : "Waiting") : "Watch")
+                                    </a>
+                                }
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        }
+    </section>
+
+    <section class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5 h-fit">
+        <h2 class="font-semibold text-white mb-4">Standings</h2>
+        @if (Model.Standings.Count == 0)
+        {
+            <p class="text-sm text-slate-500 py-4 text-center">No players yet.</p>
+        }
+        else
+        {
+            <ol class="space-y-2">
+                @for (var i = 0; i < Model.Standings.Count; i++)
+                {
+                    var p = Model.Standings[i];
+                    var isMe = Model.CurrentUserId is not null && p.PlayerId == Model.CurrentUserId;
+                    <li class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl @(isMe ? "bg-emerald-500/15 border border-emerald-500/40" : "bg-slate-800/60 border border-slate-800")">
+                        <span class="w-6 text-center text-sm font-bold @(i < 3 ? "text-amber-400" : "text-slate-500")">@(i + 1)</span>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-slate-100 truncate">@p.Player?.DisplayName</p>
+                            <p class="text-xs text-slate-500">@(p.Wins)W @(p.Draws)D @(p.Losses)L</p>
+                        </div>
+                        <span class="text-sm font-semibold text-slate-200">@p.Points</span>
+                        <span class="text-xs text-slate-500 w-10 text-right" title="Buchholz">B@(p.Buchholz)</span>
+                    </li>
+                }
+            </ol>
+        }
+    </section>
+</div>

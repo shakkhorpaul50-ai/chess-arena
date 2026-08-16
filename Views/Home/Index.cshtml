@@ -1,0 +1,106 @@
+﻿@{
+    ViewData["Title"] = "Home";
+    var liveGames = ViewData["LiveGames"] as List<Game> ?? new List<Game>();
+    var tournaments = ViewData["Tournaments"] as List<Tournament> ?? new List<Tournament>();
+    var isSignedIn = User.Identity?.IsAuthenticated == true;
+}
+
+<section class="bg-gradient-to-b from-slate-900 via-slate-950 to-slate-950">
+    <div class="max-w-7xl mx-auto px-4 py-16 md:py-24 text-center">
+        <p class="text-emerald-400 text-sm font-semibold tracking-widest uppercase mb-4">Free &middot; Real-time &middot; Open source</p>
+        <h1 class="text-4xl md:text-6xl font-extrabold text-white mb-6 tracking-tight">
+            Play chess.<br />Challenge friends. <span class="text-emerald-400">Win tournaments.</span>
+        </h1>
+        <p class="text-slate-400 text-lg max-w-2xl mx-auto mb-10">
+            Bullet-fast PvP with real chess clocks, a Stockfish-powered bot, Swiss tournaments with live
+            standings, and the ability to watch your friends' matches in real time.
+        </p>
+        <div class="flex flex-wrap items-center justify-center gap-4">
+            @if (isSignedIn)
+            {
+                <a asp-controller="Game" asp-action="Lobby" class="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold shadow-lg shadow-emerald-500/25 transition">
+                    Play online now
+                </a>
+                <a asp-controller="Bot" asp-action="Index" class="px-6 py-3 rounded-xl border border-slate-700 hover:border-emerald-500 hover:text-emerald-400 transition font-medium">
+                    Play vs Bot
+                </a>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Register" class="px-6 py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold shadow-lg shadow-emerald-500/25 transition">
+                    Create free account
+                </a>
+                <a asp-controller="Account" asp-action="Login" class="px-6 py-3 rounded-xl border border-slate-700 hover:border-emerald-500 hover:text-emerald-400 transition font-medium">
+                    Sign in
+                </a>
+            }
+        </div>
+    </div>
+</section>
+
+<div class="max-w-7xl mx-auto px-4 pb-20 grid gap-8 lg:grid-cols-2">
+
+    <section class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-white">Live games</h2>
+            <span class="text-xs text-slate-500">Updated in real time</span>
+        </div>
+        <div id="home-live-games" class="space-y-2">
+            @if (liveGames.Count == 0)
+            {
+                <p id="home-no-games" class="text-sm text-slate-500 py-4 text-center">No live games right now.</p>
+            }
+            else
+            {
+                foreach (var g in liveGames)
+                {
+                    <a asp-controller="Game" asp-action="@(g.Mode == GameMode.Bot ? "Play" : "Watch")" asp-route-key="@g.GameKey"
+                       class="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-800 hover:border-emerald-500/50 transition group">
+                        <div>
+                            <p class="font-medium text-sm text-slate-100">
+                                @(g.WhitePlayer?.DisplayName ?? "?") <span class="text-slate-500 text-xs">vs</span> @(g.BlackPlayer?.DisplayName ?? "?")
+                            </p>
+                            <p class="text-xs text-slate-500">@g.Mode &middot; @g.TimeControlLabel</p>
+                        </div>
+                        <span class="text-xs px-2 py-1 rounded-md @(g.Status == GameStatus.Active ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400")">
+                            @(g.Status == GameStatus.Active ? "Live" : "Waiting") &rarr;
+                        </span>
+                    </a>
+                }
+            }
+        </div>
+    </section>
+
+    <section class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+        <div class="flex items-center justify-between mb-4">
+            <h2 class="text-lg font-semibold text-white">Active tournaments</h2>
+            <a asp-controller="Tournament" asp-action="Index" class="text-xs text-emerald-400 hover:text-emerald-300">View all &rarr;</a>
+        </div>
+        @if (tournaments.Count == 0)
+        {
+            <p class="text-sm text-slate-500 py-4 text-center">No tournaments open right now.</p>
+        }
+        else
+        {
+            <div class="space-y-2">
+                @foreach (var t in tournaments)
+                {
+                    <a asp-controller="Tournament" asp-action="Detail" asp-route-id="@t.Id"
+                       class="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-800 hover:border-emerald-500/50 transition">
+                        <div>
+                            <p class="font-medium text-sm text-slate-100">@t.Name</p>
+                            <p class="text-xs text-slate-500">Swiss &middot; @t.Players.Count/@t.PlayerLimit players &middot; @t.TimeControlLabel</p>
+                        </div>
+                        <span class="text-xs px-2 py-1 rounded-md @(t.Status == TournamentStatus.Running ? "bg-emerald-500/15 text-emerald-400" : "bg-amber-500/15 text-amber-400")">
+                            @t.Status
+                        </span>
+                    </a>
+                }
+            </div>
+        }
+    </section>
+</div>
+
+@section Scripts {
+    <script src="~/js/home.js" asp-append-version="true"></script>
+}

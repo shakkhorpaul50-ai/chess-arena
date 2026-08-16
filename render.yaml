@@ -1,0 +1,18 @@
+services:
+  - type: web
+    name: chess-arena
+    runtime: docker
+    plan: free
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__Default
+        sync: false
+      - key: Admin__Email
+        value: admin@chessarena.app
+      - key: Admin__Password
+        sync: false
+      - key: Stockfish__BinaryPath
+        value: Stockfish/stockfish

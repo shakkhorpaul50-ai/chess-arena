@@ -1,0 +1,93 @@
+@model ProfileViewModel
+@{
+    ViewData["Title"] = "Profile";
+    var myUserId = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value ?? "";
+}
+
+<div class="max-w-4xl mx-auto px-4 py-10">
+    <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-8 mb-8">
+        <div class="flex flex-wrap items-center gap-6">
+            <div class="w-20 h-20 rounded-2xl bg-emerald-500/15 border border-emerald-500/40 flex items-center justify-center text-3xl font-bold text-emerald-400">
+                @Model.User.DisplayName[..1].ToString().ToUpper()
+            </div>
+            <div class="flex-1 min-w-0">
+                <h1 class="text-2xl font-bold text-white truncate">@Model.User.DisplayName</h1>
+                <p class="text-sm text-slate-400 mt-1">
+                    Joined @Model.User.CreatedAt.ToLocalTime().ToString("MMMM d, yyyy")
+                    @if (Model.User.IsBot)
+                    {
+                        <span class="ml-2 text-xs px-2 py-0.5 rounded-md bg-slate-700 text-slate-300">bot</span>
+                    }
+                </p>
+            </div>
+            <div class="grid grid-cols-4 gap-6 text-center">
+                <div>
+                    <p class="text-xl font-bold text-white">@Model.User.Rating</p>
+                    <p class="text-xs text-slate-500">Rating</p>
+                </div>
+                <div>
+                    <p class="text-xl font-bold text-white">@Model.User.GamesPlayed</p>
+                    <p class="text-xs text-slate-500">Games</p>
+                </div>
+                <div>
+                    <p class="text-xl font-bold text-emerald-400">@Model.User.Wins</p>
+                    <p class="text-xs text-slate-500">Wins</p>
+                </div>
+                <div>
+                    <p class="text-xl font-bold text-slate-300">@Model.FriendsCount</p>
+                    <p class="text-xs text-slate-500">Friends</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <section class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6">
+        <h2 class="text-lg font-semibold text-white mb-4">Recent games</h2>
+        @if (Model.RecentGames.Count == 0)
+        {
+            <p class="text-sm text-slate-500 py-6 text-center">No finished games yet. Play your first game!</p>
+        }
+        else
+        {
+            <div class="space-y-2">
+                @foreach (var g in Model.RecentGames)
+                {
+                    var white = g.WhitePlayer?.DisplayName ?? "?";
+                    var black = g.BlackPlayer?.DisplayName ?? "?";
+                    string badge, badgeClass;
+                    if (g.Result == GameResult.Draw)
+                    {
+                        badge = "Draw";
+                        badgeClass = "bg-slate-700/50 text-slate-400";
+                    }
+                    else if (g.WinnerUserId == myUserId)
+                    {
+                        badge = "Win";
+                        badgeClass = "bg-emerald-500/15 text-emerald-400";
+                    }
+                    else
+                    {
+                        badge = "Loss";
+                        badgeClass = "bg-red-500/15 text-red-400";
+                    }
+                    <div class="flex items-center justify-between px-4 py-3 rounded-xl bg-slate-800/60 border border-slate-800">
+                        <div class="min-w-0">
+                            <p class="font-medium text-sm text-slate-100 truncate">
+                                @white <span class="text-slate-500 text-xs">vs</span> @black
+                                @if (g.Mode == GameMode.Bot)
+                                {
+                                    <span class="ml-2 text-xs px-1.5 py-0.5 rounded bg-slate-700 text-slate-400">bot</span>
+                                }
+                            </p>
+                            <p class="text-xs text-slate-500 mt-0.5">@g.TimeControlLabel &middot; @(g.EndedUtc?.ToLocalTime().ToString("MMM d, yyyy HH:mm") ?? "")</p>
+                        </div>
+                        <div class="flex items-center gap-3 shrink-0">
+                            <span class="text-xs px-2.5 py-1 rounded-md @badgeClass">@badge</span>
+                            <a asp-controller="Game" asp-action="Watch" asp-route-key="@g.GameKey" class="text-xs px-3 py-1.5 rounded-lg bg-slate-700 hover:bg-emerald-600 text-slate-100 font-medium transition">Replay</a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </section>
+</div>

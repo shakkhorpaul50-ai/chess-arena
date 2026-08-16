@@ -1,0 +1,112 @@
+@model AdminViewModel
+@{
+    ViewData["Title"] = "Admin";
+}
+
+<div class="max-w-5xl mx-auto px-4 py-10">
+    <h1 class="text-3xl font-bold text-white mb-8">Tournament admin</h1>
+
+    @if (TempData["Error"] is not null)
+    {
+        <div class="mb-6 px-4 py-3 rounded-xl bg-red-950/60 border border-red-500/40 text-sm text-red-300">@TempData["Error"]</div>
+    }
+
+    <div class="grid gap-8 lg:grid-cols-2">
+
+        <section class="bg-slate-900/60 border border-slate-800 rounded-2xl p-6 h-fit">
+            <h2 class="text-lg font-semibold text-white mb-5">Create tournament</h2>
+            <form asp-controller="Admin" asp-action="Create" method="post" novalidate>
+                @Html.AntiForgeryToken()
+                <div asp-validation-summary="ModelOnly" class="text-sm text-red-400 mb-4"></div>
+
+                <div class="mb-4">
+                    <label asp-for="Create.Name" class="block text-sm font-medium text-slate-300 mb-1.5">Name</label>
+                    <input asp-for="Create.Name" class="w-full px-3.5 py-2.5 rounded-lg bg-slate-800 border border-slate-700 focus:border-emerald-500 focus:outline-none text-slate-100" placeholder="Arena Cup 2026" />
+                    <span asp-validation-for="Create.Name" class="text-xs text-red-400"></span>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label asp-for="Create.PlayerLimit" class="block text-sm font-medium text-slate-300 mb-1.5">Players</label>
+                        <select asp-for="Create.PlayerLimit" class="w-full px-3.5 py-2.5 rounded-lg bg-slate-800 border border-slate-700 focus:border-emerald-500 focus:outline-none text-slate-100">
+                            <option value="4">4 players</option>
+                            <option value="6">6 players</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label asp-for="Create.TotalRounds" class="block text-sm font-medium text-slate-300 mb-1.5">Rounds</label>
+                        <select asp-for="Create.TotalRounds" class="w-full px-3.5 py-2.5 rounded-lg bg-slate-800 border border-slate-700 focus:border-emerald-500 focus:outline-none text-slate-100">
+                            <option value="3" selected>3 rounds</option>
+                            <option value="5">5 rounds</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-4 mb-6">
+                    <div>
+                        <label asp-for="Create.BaseMinutes" class="block text-sm font-medium text-slate-300 mb-1.5">Minutes</label>
+                        <select asp-for="Create.BaseMinutes" class="w-full px-3.5 py-2.5 rounded-lg bg-slate-800 border border-slate-700 focus:border-emerald-500 focus:outline-none text-slate-100">
+                            <option value="5">5</option>
+                            <option value="10" selected>10</option>
+                            <option value="15">15</option>
+                            <option value="30">30</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label asp-for="Create.IncrementSeconds" class="block text-sm font-medium text-slate-300 mb-1.5">Increment (s)</label>
+                        <select asp-for="Create.IncrementSeconds" class="w-full px-3.5 py-2.5 rounded-lg bg-slate-800 border border-slate-700 focus:border-emerald-500 focus:outline-none text-slate-100">
+                            <option value="0" selected>0</option>
+                            <option value="2">2</option>
+                            <option value="5">5</option>
+                            <option value="10">10</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full py-3 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold transition">Create</button>
+            </form>
+        </section>
+
+        <section class="space-y-4">
+            <h2 class="text-lg font-semibold text-white">Existing tournaments</h2>
+            @if (Model.Tournaments.Count == 0)
+            {
+                <p class="text-sm text-slate-500">No tournaments yet.</p>
+            }
+            @foreach (var t in Model.Tournaments)
+            {
+                <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+                    <div class="flex items-center justify-between mb-1">
+                        <p class="font-semibold text-slate-100">@t.Name</p>
+                        <span class="text-xs px-2.5 py-1 rounded-md @(t.Status switch {
+                                TournamentStatus.Registration => "bg-amber-500/15 text-amber-400",
+                                TournamentStatus.Running => "bg-emerald-500/15 text-emerald-400",
+                                _ => "bg-slate-700/50 text-slate-400" })">@t.Status</span>
+                    </div>
+                    <p class="text-xs text-slate-500 mb-4">@t.Players.Count/@t.PlayerLimit players &middot; @t.TotalRounds rounds &middot; @t.TimeControlLabel</p>
+                    <div class="flex gap-2">
+                        @if (t.Status == TournamentStatus.Registration)
+                        {
+                            <form asp-controller="Admin" asp-action="Start" asp-route-id="@t.Id" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="px-4 py-2 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-sm transition">Start</button>
+                            </form>
+                            <form asp-controller="Admin" asp-action="Cancel" asp-route-id="@t.Id" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="px-4 py-2 rounded-lg border border-slate-600 hover:border-red-500 hover:text-red-400 text-sm transition">Cancel</button>
+                            </form>
+                        }
+                        @if (t.Status == TournamentStatus.Running)
+                        {
+                            <a asp-controller="Tournament" asp-action="Detail" asp-route-id="@t.Id" class="px-4 py-2 rounded-lg bg-slate-700 hover:bg-slate-600 text-slate-100 text-sm font-medium transition">View</a>
+                        }
+                    </div>
+                </div>
+            }
+        </section>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

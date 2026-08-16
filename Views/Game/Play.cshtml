@@ -1,0 +1,120 @@
+@model PlayViewModel
+@{
+    ViewData["Title"] = Model.IsSpectator ? "Watch a match" : "Play chess";
+    var snap = ViewData["Snapshot"] as GameSnapshot;
+}
+
+<div class="max-w-7xl mx-auto px-4 py-8">
+    <div class="grid gap-6 lg:grid-cols-[1fr_320px]">
+
+        <div>
+            @if (Model.IsSpectator)
+            {
+                <div class="mb-4 px-4 py-3 rounded-xl bg-sky-950/70 border border-sky-500/40 text-sm text-sky-200">
+                    You are watching <span class="font-semibold">@Model.Game!.WhitePlayer?.DisplayName</span> vs
+                    <span class="font-semibold">@Model.Game!.BlackPlayer?.DisplayName</span> live.
+                    <a asp-controller="Game" asp-action="Play" asp-route-key="@Model.Game.GameKey" class="text-sky-400 underline underline-offset-2 ml-2">Join instead</a>
+                </div>
+            }
+
+            <!-- Opponent clock -->
+            <div id="opponent-clock" class="clock-box flex items-center justify-between px-4 py-3 rounded-xl border border-slate-700 bg-slate-900/60 mb-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="text-lg">&#9813;</span>
+                    <div class="truncate">
+                        <p id="opponent-name" class="font-semibold text-sm text-white truncate">...</p>
+                        <p id="opponent-rating" class="text-xs text-slate-500">rating ...</p>
+                    </div>
+                </div>
+                <span id="opponent-clock-value" class="text-2xl font-mono font-bold text-slate-100">0:00</span>
+            </div>
+
+            <!-- Board -->
+            <div id="board-wrap" class="relative">
+                <div id="board" class="board-basic"></div>
+
+                <div id="waiting-overlay" class="overlay hidden">
+                    <div class="text-center px-6">
+                        <p class="text-lg font-semibold text-white mb-2">Waiting for opponent...</p>
+                        <p class="text-sm text-slate-400">Share this link to play:</p>
+                        <p id="share-link" class="text-xs text-emerald-400 break-all mt-1 select-all"></p>
+                    </div>
+                </div>
+
+                <div id="gameover-overlay" class="overlay hidden">
+                    <div class="text-center px-8">
+                        <p id="gameover-title" class="text-2xl font-extrabold text-white mb-2">Game over</p>
+                        <p id="gameover-reason" class="text-sm text-slate-300 mb-6"></p>
+                        <div class="flex flex-wrap justify-center gap-3">
+                            <button id="btn-rematch" class="hidden px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold transition">Rematch</button>
+                            <a asp-controller="Game" asp-action="Lobby" class="px-5 py-2.5 rounded-xl border border-slate-600 hover:border-slate-400 transition font-medium">Back to lobby</a>
+                            <button id="btn-leave-tournament" class="hidden px-5 py-2.5 rounded-xl border border-slate-600 hover:border-slate-400 transition font-medium">Tournament home</button>
+                        </div>
+                        <p id="rematch-waiting" class="hidden mt-4 text-sm text-amber-400">Waiting for opponent to accept the rematch...</p>
+                    </div>
+                </div>
+
+                <div id="promo-overlay" class="overlay hidden">
+                    <div class="text-center">
+                        <p class="text-sm text-slate-300 mb-3">Promote to</p>
+                        <div id="promo-pieces" class="flex gap-3"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- My clock -->
+            <div id="my-clock" class="clock-box flex items-center justify-between px-4 py-3 rounded-xl border border-slate-700 bg-slate-900/60 mt-3">
+                <div class="flex items-center gap-3 min-w-0">
+                    <span class="text-lg">&#9812;</span>
+                    <div class="truncate">
+                        <p id="my-name" class="font-semibold text-sm text-white truncate">...</p>
+                        <p id="my-rating" class="text-xs text-slate-500">rating ...</p>
+                    </div>
+                </div>
+                <span id="my-clock-value" class="text-2xl font-mono font-bold text-slate-100">0:00</span>
+            </div>
+
+            <div id="status-line" class="mt-3 text-sm text-slate-400 text-center min-h-[1.5rem]"></div>
+        </div>
+
+        <!-- Side panel -->
+        <aside class="space-y-4">
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+                <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider mb-3">Actions</h2>
+                <div id="action-buttons" class="grid grid-cols-2 gap-2">
+                    <button id="btn-resign" disabled class="px-3 py-2.5 rounded-xl bg-red-500/90 hover:bg-red-400 text-slate-950 text-sm font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed">Resign</button>
+                    <button id="btn-draw" disabled class="px-3 py-2.5 rounded-xl bg-slate-700 hover:bg-slate-600 text-slate-100 text-sm font-semibold transition disabled:opacity-40 disabled:cursor-not-allowed">Offer draw</button>
+                </div>
+                <div id="draw-offer-box" class="hidden mt-3 p-3 rounded-xl bg-amber-950/60 border border-amber-500/40 text-sm">
+                    <p class="text-amber-200 mb-2">Your opponent offers a draw.</p>
+                    <div class="flex gap-2">
+                        <button id="btn-accept-draw" class="flex-1 px-3 py-1.5 rounded-lg bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-semibold text-xs">Accept</button>
+                        <button id="btn-decline-draw" class="flex-1 px-3 py-1.5 rounded-lg border border-slate-600 hover:border-red-500 hover:text-red-400 text-xs">Decline</button>
+                    </div>
+                </div>
+                <div id="draw-offered-info" class="hidden mt-3 p-3 rounded-xl bg-slate-800 border border-slate-700 text-sm text-slate-300">
+                    Draw offered &mdash; waiting for your opponent.
+                </div>
+            </div>
+
+            <div class="bg-slate-900/60 border border-slate-800 rounded-2xl p-5">
+                <div class="flex items-center justify-between mb-3">
+                    <h2 class="text-sm font-semibold text-slate-400 uppercase tracking-wider">Moves</h2>
+                    <span id="spectators-count" class="text-xs text-slate-500">&#128100; 0 watching</span>
+                </div>
+                <div id="move-list" class="move-list max-h-[420px] overflow-y-auto pr-2 space-y-1"></div>
+            </div>
+        </aside>
+    </div>
+</div>
+
+<script type="application/json" id="snapshot-data">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(snap, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
+</script>
+<script type="application/json" id="page-data">
+    @Html.Raw(System.Text.Json.JsonSerializer.Serialize(new { currentUserId = Model.CurrentUserId, isPlayer = Model.IsPlayer, isSpectator = Model.IsSpectator, isBotGame = Model.IsBotGame, tournamentGame = Model.IsTournamentGame }, new System.Text.Json.JsonSerializerOptions { PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase }))
+</script>
+
+@section Scripts {
+    <script src="~/js/game.js" asp-append-version="true"></script>
+}
