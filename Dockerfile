@@ -23,13 +23,12 @@ RUN dotnet publish "./WebApplication1.csproj" -c $BUILD_CONFIGURATION -o /app/pu
 # Downloads the official Stockfish binary for Linux x64
 FROM mcr.microsoft.com/dotnet/sdk:10.0 AS stockfish
 ARG STOCKFISH_VERSION=17.1
-RUN apt-get update && apt-get install -y --no-install-recommends curl xz-utils && rm -rf /var/lib/apt/lists/* \
+RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/* \
     && mkdir -p /stockfish \
-    && curl -fsSL "https://github.com/official-stockfish/Stockfish/releases/download/sf_${STOCKFISH_VERSION}/stockfish-ubuntu-x86-64.tar.gz" -o /tmp/stockfish.tar.gz \
-    && tar -xzf /tmp/stockfish.tar.gz -C /stockfish --strip-components=1 \
+    && curl -fsSL "https://github.com/official-stockfish/Stockfish/releases/download/sf_${STOCKFISH_VERSION}/stockfish-ubuntu-x86-64.tar" -o /tmp/stockfish.tar \
+    && tar -xf /tmp/stockfish.tar -C /stockfish --strip-components=1 \
     && find /stockfish -name 'stockfish*' -type f -executable | head -n 1 | xargs -I{} cp {} /stockfish/stockfish \
-    && chmod +x /stockfish/stockfish \
-    && /stockfish/stockfish --help | head -n 2
+    && chmod +x /stockfish/stockfish
 
 # This stage is used in production or when running from VS in regular mode (Default when not using the Debug configuration)
 FROM base AS final
