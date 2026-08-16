@@ -1,29 +1,15 @@
-## .NET build output
+## .NET
 bin/
 obj/
 *.user
 *.suo
 
-## Visual Studio
+## IDE
 .vs/
-.vscode/
 .idea/
 
-## Local config
-appsettings.Development.json
-appsettings.Production.json
-
-## Stockfish binary (download via scripts/download-stockfish.ps1 or the Dockerfile)
+## Downloaded binaries (re-fetched by scripts/download-stockfish.ps1 / Dockerfile)
 Stockfish/
-!Stockfish/.gitkeep
 
 ## Logs
 *.log
-logs/
-
-## OS
-Thumbs.db
-.DS_Store
-
-## Test scaffolding
-hubtest/
