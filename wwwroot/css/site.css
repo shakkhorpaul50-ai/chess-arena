@@ -99,6 +99,12 @@ body {
     z-index: 10;
 }
 
+/* Tailwind v4 emits .hidden inside @layer utilities, which loses to this
+   unlayered display:flex. Keep hidden overlays hidden. */
+.overlay.hidden {
+    display: none;
+}
+
 /* ---- toasts ---- */
 .toast-item {
     animation: toast-in 0.25s ease-out;
