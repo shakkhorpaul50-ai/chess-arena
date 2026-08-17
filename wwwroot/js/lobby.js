@@ -79,6 +79,9 @@
         connection.on('Presence', users => renderPlayers(users.users || []));
         connection.on('LobbyRefresh', ev => renderGames(ev.games || []));
         connection.on('ChallengeReceived', showChallengeBanner);
+        connection.on('ChallengeAccepted', ev => {
+            window.location.href = '/Game/Play?key=' + ev.gameKey;
+        });
 
         connection.onclose(() => { /* automatic reconnect configured */ });
 

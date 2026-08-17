@@ -19,6 +19,8 @@ public record LobbyEvent(List<LobbyGame> Games);
 
 public record ChallengeReceivedEvent(Guid GameKey, string FromUserId, string FromName, int BaseMinutes, int IncrementSeconds);
 
+public record ChallengeAcceptedEvent(Guid GameKey);
+
 public record GameStartedEvent(Guid GameKey);
 
 public record MovePlayedEvent(

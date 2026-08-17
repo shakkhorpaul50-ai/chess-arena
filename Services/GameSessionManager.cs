@@ -311,6 +311,7 @@ public sealed class GameSessionManager
             return null;
         }
         _challenges.TryRemove(userId, out _);
+        await _hub.Clients.User(s.WhiteUserId).SendAsync("ChallengeAccepted", new ChallengeAcceptedEvent(gameKey));
         await StartIfReadyAsync(s);
         return BuildSnapshot(s, userId, connectionId, isPlayer: true, isSpectator: false);
     }
