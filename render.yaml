@@ -8,6 +8,8 @@ services:
     envVars:
       - key: ASPNETCORE_ENVIRONMENT
         value: Production
+      - key: DOTNET_hostBuilder__reloadConfigOnChange
+        value: "false"
       - key: ConnectionStrings__Default
         sync: false
       - key: Admin__Email
