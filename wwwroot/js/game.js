@@ -35,13 +35,7 @@
         return snap.isWhite ? snap.blackRating : snap.whiteRating;
     }
 
-    function setBoardDraggable(value) {
-        if (board) board.option('draggable', value);
-    }
-
     function updateInteraction() {
-        const canMove = isPlayer && !gameOver && myTurn && !interactionLocked && snap.status === 'Active';
-        setBoardDraggable(canMove);
         $('#btn-resign').prop('disabled', !(isPlayer && !gameOver && snap.status === 'Active'));
         $('#btn-draw').prop('disabled', !(isPlayer && !gameOver && snap.status === 'Active'));
     }
@@ -96,7 +90,7 @@
             board = Chessboard('board', {
                 position: snapshot.fen,
                 orientation: snapshot.isWhite ? 'white' : 'black',
-                draggable: false,
+                draggable: true,
                 pieceTheme: '/lib/chessboardjs/img/chesspieces/wikipedia/{piece}.png',
                 onDrop: handleDrop,
                 onDragStart: handleDragStart,
@@ -174,7 +168,6 @@
         $('#btn-rematch').toggleClass('hidden', !isPlayer || result === 'aborted');
         $('#btn-leave-tournament').toggleClass('hidden', !pageData.tournamentGame);
         $('#rematch-waiting').addClass('hidden');
-        setBoardDraggable(false);
     }
 
     function reasonText(reason) {
