@@ -257,7 +257,12 @@ public sealed class GameSessionManager
     {
         if (!_sessions.TryGetValue(gameKey, out var s))
         {
-            return new HubResult(false, "Game not found.");
+            s = await RebuildSessionAsync(gameKey);
+            if (s is null)
+            {
+                return new HubResult(false, "Game not found.");
+            }
+            _sessions[gameKey] = s;
         }
         bool canCancel = false;
         lock (s.Sync)
@@ -276,7 +281,12 @@ public sealed class GameSessionManager
     {
         if (!_sessions.TryGetValue(gameKey, out var s))
         {
-            return new HubResult(false, "Game not found.");
+            s = await RebuildSessionAsync(gameKey);
+            if (s is null)
+            {
+                return new HubResult(false, "Game not found.");
+            }
+            _sessions[gameKey] = s;
         }
         bool canDecline = false;
         lock (s.Sync)
@@ -295,7 +305,12 @@ public sealed class GameSessionManager
     {
         if (!_sessions.TryGetValue(gameKey, out var s))
         {
-            return null;
+            s = await RebuildSessionAsync(gameKey);
+            if (s is null)
+            {
+                return null;
+            }
+            _sessions[gameKey] = s;
         }
         bool accepted = false;
         lock (s.Sync)

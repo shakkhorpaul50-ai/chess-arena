@@ -62,13 +62,25 @@
             </div>`;
         banner.classList.remove('hidden');
         document.getElementById('accept-challenge').addEventListener('click', async () => {
-            const snap = await connection.invoke('AcceptChallenge', ch.gameKey);
-            if (snap) {
-                window.location.href = `/Game/Play?key=${snap.gameKey}`;
+            try {
+                const snap = await connection.invoke('AcceptChallenge', ch.gameKey);
+                if (snap) {
+                    window.location.href = '/Game/Play?key=' + snap.gameKey;
+                } else {
+                    showToast('This challenge is no longer available.', 'error');
+                    banner.classList.add('hidden');
+                    pendingChallenge = null;
+                }
+            } catch (err) {
+                showToast('Failed to accept: ' + err.message, 'error');
             }
         });
         document.getElementById('decline-challenge').addEventListener('click', async () => {
-            await connection.invoke('DeclineChallenge', ch.gameKey);
+            try {
+                await connection.invoke('DeclineChallenge', ch.gameKey);
+            } catch (err) {
+                showToast('Failed to decline: ' + err.message, 'error');
+            }
             banner.classList.add('hidden');
             pendingChallenge = null;
         });
