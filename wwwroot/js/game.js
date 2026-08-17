@@ -416,19 +416,40 @@
 
     async function start() {
         bindActions();
-        applySnapshot(snap);
+        try {
+            applySnapshot(snap);
+        } catch (err) {
+            showToast('Board setup failed: ' + err.message, 'error');
+        }
         connection = initHub();
         registerHandlers();
         try {
             await connection.start();
-            const snapshot = isSpectator
-                ? await connection.invoke('SpectateGame', gameKey)
-                : await connection.invoke('JoinGame', gameKey);
-            if (snapshot) applySnapshot(snapshot);
         } catch (err) {
             showToast('Connection failed: ' + err.message, 'error');
-            $('#status-line').text('Could not connect to the game server. Refresh to retry.');
+            $('#status-line').text('Could not connect to the game server. Retrying...');
         }
+
+        for (let attempt = 1; attempt <= 5; attempt++) {
+            if (connection.state !== 'Connected') {
+                await new Promise(r => setTimeout(r, 2000));
+                continue;
+            }
+            try {
+                const snapshot = isSpectator
+                    ? await connection.invoke('SpectateGame', gameKey)
+                    : await connection.invoke('JoinGame', gameKey);
+                if (snapshot) {
+                    applySnapshot(snapshot);
+                    return;
+                }
+                $('#status-line').text('Joining game... (attempt ' + attempt + ' of 5)');
+            } catch (err) {
+                $('#status-line').text('Join failed, retrying (' + attempt + ' of 5): ' + err.message);
+            }
+            await new Promise(r => setTimeout(r, 2500));
+        }
+        showToast('Could not join the game. Please refresh the page.', 'error');
     }
 
     window.addEventListener('resize', resizeBoard);
